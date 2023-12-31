@@ -35,13 +35,13 @@ static int open_counter;
 static int hello_open(devminor_t UNUSED(minor), int UNUSED(access),
     endpoint_t UNUSED(user_endpt))
 {
-    printf("hello_open(). Called %d time(s).\n", ++open_counter);
+    printf("hello_open(). Called %d time(s).\r\n", ++open_counter);
     return OK;
 }
 
 static int hello_close(devminor_t UNUSED(minor))
 {
-    printf("hello_close()\n");
+    printf("hello_close()\r\n");
     return OK;
 }
 
@@ -54,7 +54,7 @@ static ssize_t hello_read(devminor_t UNUSED(minor), u64_t position,
     int ret;
     char *buf = HELLO_MESSAGE;
 
-    printf("hello_read()\n");
+    printf("hello_read()\r\n");
 
     /* This is the total size of our device. */
     dev_size = (u64_t) strlen(buf);
@@ -125,11 +125,11 @@ static int sef_cb_init(int type, sef_init_info_t *UNUSED(info))
             lu_state_restore();
             do_announce_driver = FALSE;
 
-            printf("%sHey, I'm a new version!\n", HELLO_MESSAGE);
+            printf("%sHey, I'm a new version!\r\n", HELLO_MESSAGE);
         break;
 
         case SEF_INIT_RESTART:
-            printf("%sHey, I've just been restarted!\n", HELLO_MESSAGE);
+            printf("%sHey, I've just been restarted!\r\n", HELLO_MESSAGE);
         break;
     }
 

@@ -70,6 +70,7 @@ SRCS+=  \
 	sys_physcopy.c \
 	sys_privctl.c \
 	sys_runctl.c \
+	sys_sample.c \
 	sys_safecopy.c \
 	sys_safememset.c \
 	sys_schedctl.c \

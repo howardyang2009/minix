@@ -265,9 +265,10 @@
 #  define SYS_SAFEMEMSET (KERNEL_CALL + 56)	/* sys_safememset() */
 
 #  define SYS_PADCONF (KERNEL_CALL + 57)	/* sys_padconf() */
+#define SYS_SAMPLE    (KERNEL_CALL + 58)      /* sys_sample() */
 
 /* Total */
-#define NR_SYS_CALLS	58	/* number of kernel calls */
+#define NR_SYS_CALLS	59	/* number of kernel calls */
 
 #define SYS_CALL_MASK_SIZE BITMAP_CHUNKS(NR_SYS_CALLS)
 
@@ -275,7 +276,7 @@
 #define SYS_BASIC_CALLS \
     SYS_EXIT, SYS_SAFECOPYFROM, SYS_SAFECOPYTO, SYS_VSAFECOPY, SYS_GETINFO, \
     SYS_TIMES, SYS_SETALARM, SYS_SETGRANT, \
-    SYS_DIAGCTL, SYS_STATECTL, SYS_SAFEMEMSET
+    SYS_DIAGCTL, SYS_STATECTL, SYS_SAMPLE, SYS_SAFEMEMSET
 
 /* Field names for SYS_DEVIO, SYS_VDEVIO, SYS_SDEVIO. */
 #   define _DIO_INPUT		0x001

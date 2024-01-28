@@ -86,21 +86,21 @@ OBJS.kernel+=	${UNPAGED_OBJS}
 SRCS += arch_smp.c trampoline.S
 .endif
 
-.if ${USE_ACPI} != "no"
+.if "${USE_ACPI}" != "no"
 SRCS+= acpi.c
 CPPFLAGS+= -DUSE_ACPI
 .endif
 
-.if ${USE_APIC} != "no"
+.if "${USE_APIC}" != "no"
 SRCS+= apic.c apic_asm.S
 CPPFLAGS+= -DUSE_APIC
 .endif
 
-.if ${USE_DEBUGREG} != "no"
+.if "${USE_DEBUGREG}" != "no"
 SRCS+=  breakpoints.c debugreg.S
 .endif
 
-.if ${USE_WATCHDOG} != "no"
+.if "${USE_WATCHDOG}" != "no"
 SRCS+= arch_watchdog.c
 CPPFLAGS+= -DUSE_WATCHDOG
 .endif

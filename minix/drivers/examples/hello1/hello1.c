@@ -6,11 +6,11 @@ int main(int argc, char **argv)
 {
     sef_startup();
  
-    endpoint_t et;
-    unsigned flag;
+    endpoint_t ept;
+    unsigned flags;
 
-    int r = sys_sample( flag, et);
+    int r = sys_sample(flags, ept);
     
-    printf("Hello, World!\n");
+    printf("Hello, World %d!\n", r);
     return EXIT_SUCCESS;
 }

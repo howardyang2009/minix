@@ -135,9 +135,6 @@ void kmain(kinfo_t *local_cbi)
   /* We want to initialize serial before we do any output */
   arch_ser_init();
 #endif
-  /* We can talk now */
-  DEBUGBASIC(("MINIX booting\n"));
-
   /* Kernel may use bits of main memory before VM is started */
   kernel_may_alloc = 1;
 
@@ -145,6 +142,9 @@ void kmain(kinfo_t *local_cbi)
   memcpy(kinfo.boot_procs, image, sizeof(kinfo.boot_procs));
 
   cstart();
+
+  /* We can talk now */
+  DEBUGBASIC(("MINIX booting\n"));
 
   BKL_LOCK();
  

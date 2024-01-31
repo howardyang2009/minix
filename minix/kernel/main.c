@@ -144,7 +144,7 @@ void kmain(kinfo_t *local_cbi)
   cstart();
 
   /* We can talk now */
-  DEBUGBASIC(("MINIX booting\n"));
+  DEBUGBASIC(("%s booting\n", OS_NAME));
 
   BKL_LOCK();
 
@@ -348,7 +348,7 @@ void kmain(kinfo_t *local_cbi)
 static void announce(void)
 {
   /* Display the MINIX startup banner. */
-  printf("\nMINIX %s. "
+  printf("%s %s. "
 #ifdef PAE
          "(PAE) "
 #endif
@@ -356,8 +356,8 @@ static void announce(void)
          "(" _VCS_REVISION ")\n"
 #endif
          "Copyright 2024, Vrije Universiteit, Amsterdam, The Netherlands\n",
-         OS_RELEASE);
-  printf("MINIX-YunOS is open source software, see https://github.com/howardyang2009/minix\n");
+         OS_NAME, OS_RELEASE);
+  printf("%s is open source software, see %s\n", OS_NAME, OS_GIT);
 }
 
 /*===========================================================================*
@@ -372,7 +372,7 @@ void prepare_shutdown(const int how)
    * do shutdown work.  Set a watchog timer to call shutdown(). The timer
    * argument passes the shutdown status.
    */
-  printf("MINIX will now be shut down ...\n");
+  printf("%s will now be shut down ...\n", OS_NAME);
   set_kernel_timer(&shutdown_timer, get_monotonic() + system_hz,
                    minix_shutdown, how);
 }
@@ -403,12 +403,12 @@ void minix_shutdown(int how)
   /* Show shutdown message */
   direct_cls();
   if ((how & RB_POWERDOWN) == RB_POWERDOWN)
-    direct_print("MINIX has halted and will now power off.\n");
+    direct_print(OS_NAME " has halted and will now power off.\n");
   else if (how & RB_HALT)
-    direct_print("MINIX has halted. "
-                 "It is safe to turn off your computer.\n");
+    direct_print(OS_NAME " has halted. "
+                         "It is safe to turn off your computer.\n");
   else
-    direct_print("MINIX will now reset.\n");
+    direct_print(OS_NAME " will now reset.\n");
   arch_shutdown(how);
 }
 

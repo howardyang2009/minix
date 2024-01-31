@@ -1,8 +1,8 @@
 /* This file contains the main program of MINIX as well as its shutdown code.
  * The routine main() initializes the system and starts the ball rolling by
- * setting up the process table, interrupt vectors, and scheduling each task 
+ * setting up the process table, interrupt vectors, and scheduling each task
  * to run to initialize itself.
- * The routine shutdown() does the opposite and brings down MINIX. 
+ * The routine shutdown() does the opposite and brings down MINIX.
  *
  * The entries into this file are:
  *   main:	    	MINIX main program
@@ -30,7 +30,7 @@
 #include "spinlock.h"
 
 /* dummy for linking */
-char *** _penviron;
+char ***_penviron;
 
 /* Prototype declarations for PRIVATE functions. */
 static void announce(void);
@@ -39,8 +39,8 @@ void bsp_finish_booting(void)
 {
   int i;
 #if SPROFILE
-  sprofiling = 0;      /* we're not profiling until instructed to */
-#endif /* SPROFILE */
+  sprofiling = 0; /* we're not profiling until instructed to */
+#endif            /* SPROFILE */
 
   cpu_identify();
 
@@ -49,20 +49,21 @@ void bsp_finish_booting(void)
   krandom.random_elements = RANDOM_ELEMENTS;
 
   /* MINIX is now ready. All boot image processes are on the ready queue.
-   * Return to the assembly code to start running the current process. 
+   * Return to the assembly code to start running the current process.
    */
-  
+
   /* it should point somewhere */
   get_cpulocal_var(bill_ptr) = get_cpulocal_var_ptr(idle_proc);
   get_cpulocal_var(proc_ptr) = get_cpulocal_var_ptr(idle_proc);
-  announce();				/* print MINIX startup banner */
+  announce(); /* print MINIX startup banner */
 
   /*
    * we have access to the cpu local run queue, only now schedule the processes.
    * We ignore the slots for the former kernel tasks
    */
-  for (i=0; i < NR_BOOT_PROCS - NR_TASKS; i++) {
-	RTS_UNSET(proc_addr(i), RTS_PROC_STOP);
+  for (i = 0; i < NR_BOOT_PROCS - NR_TASKS; i++)
+  {
+    RTS_UNSET(proc_addr(i), RTS_PROC_STOP);
   }
   /*
    * Enable timer interrupts and clock task on the boot CPU.  First reset the
@@ -70,9 +71,10 @@ void bsp_finish_booting(void)
    */
   cycles_accounting_init();
 
-  if (boot_cpu_init_timer(system_hz)) {
-	  panic("FATAL : failed to initialize timer interrupts, "
-			  "cannot continue without any clock source!");
+  if (boot_cpu_init_timer(system_hz))
+  {
+    panic("FATAL : failed to initialize timer interrupts, "
+          "cannot continue without any clock source!");
   }
 
   fpu_init();
@@ -99,7 +101,6 @@ void bsp_finish_booting(void)
   machine.processors_count = 1;
   machine.bsp_id = 0;
 #endif
-  
 
   /* Kernel may no longer use bits of memory as VM will be running soon */
   kernel_may_alloc = 0;
@@ -108,15 +109,14 @@ void bsp_finish_booting(void)
   NOT_REACHABLE;
 }
 
-
 /*===========================================================================*
  *			kmain 	                             		*
  *===========================================================================*/
 void kmain(kinfo_t *local_cbi)
 {
-/* Start the ball rolling. */
-  struct boot_image *ip;	/* boot image pointer */
-  register struct proc *rp;	/* process pointer */
+  /* Start the ball rolling. */
+  struct boot_image *ip;    /* boot image pointer */
+  register struct proc *rp; /* process pointer */
   register int i, j;
   static int bss_test;
 
@@ -128,9 +128,9 @@ void kmain(kinfo_t *local_cbi)
   memcpy(&kinfo, local_cbi, sizeof(kinfo));
   memcpy(&kmess, kinfo.kmess, sizeof(kmess));
 
-   /* We have done this exercise in pre_init so we expect this code
-      to simply work! */
-   machine.board_id = get_board_id_by_name(env_get(BOARDVARNAME));
+  /* We have done this exercise in pre_init so we expect this code
+     to simply work! */
+  machine.board_id = get_board_id_by_name(env_get(BOARDVARNAME));
 #ifdef __arm__
   /* We want to initialize serial before we do any output */
   arch_ser_init();
@@ -147,8 +147,8 @@ void kmain(kinfo_t *local_cbi)
   DEBUGBASIC(("MINIX booting\n"));
 
   BKL_LOCK();
- 
-   DEBUGEXTRA(("main()\n"));
+
+  DEBUGEXTRA(("main()\n"));
 
   /* Clear the process table. Anounce each slot as empty and set up mappings
    * for proc_addr() and proc_nr() macros. Do the same for the table with
@@ -157,128 +157,138 @@ void kmain(kinfo_t *local_cbi)
   proc_init();
   IPCF_POOL_INIT();
 
-   if(NR_BOOT_MODULES != kinfo.mbi.mi_mods_count)
-   	panic("expecting %d boot processes/modules, found %d",
-		NR_BOOT_MODULES, kinfo.mbi.mi_mods_count);
+  if (NR_BOOT_MODULES != kinfo.mbi.mi_mods_count)
+    panic("expecting %d boot processes/modules, found %d",
+          NR_BOOT_MODULES, kinfo.mbi.mi_mods_count);
 
   /* Set up proc table entries for processes in boot image. */
-  for (i=0; i < NR_BOOT_PROCS; ++i) {
-	int schedulable_proc;
-	proc_nr_t proc_nr;
-	int ipc_to_m, kcalls;
-	sys_map_t map;
+  for (i = 0; i < NR_BOOT_PROCS; ++i)
+  {
+    int schedulable_proc;
+    proc_nr_t proc_nr;
+    int ipc_to_m, kcalls;
+    sys_map_t map;
 
-	ip = &image[i];				/* process' attributes */
-	DEBUGEXTRA(("initializing %s... ", ip->proc_name));
-	rp = proc_addr(ip->proc_nr);		/* get process pointer */
-	ip->endpoint = rp->p_endpoint;		/* ipc endpoint */
-	rp->p_cpu_time_left = 0;
-	if(i < NR_TASKS)			/* name (tasks only) */
-		strlcpy(rp->p_name, ip->proc_name, sizeof(rp->p_name));
+    ip = &image[i]; /* process' attributes */
+    DEBUGEXTRA(("initializing %s... ", ip->proc_name));
+    rp = proc_addr(ip->proc_nr);   /* get process pointer */
+    ip->endpoint = rp->p_endpoint; /* ipc endpoint */
+    rp->p_cpu_time_left = 0;
+    if (i < NR_TASKS) /* name (tasks only) */
+      strlcpy(rp->p_name, ip->proc_name, sizeof(rp->p_name));
 
-	if(i >= NR_TASKS) {
-		/* Remember this so it can be passed to VM */
-		multiboot_module_t *mb_mod = &kinfo.module_list[i - NR_TASKS];
-		ip->start_addr = mb_mod->mod_start;
-		ip->len = mb_mod->mod_end - mb_mod->mod_start;
-	}
-	
-	reset_proc_accounting(rp);
+    if (i >= NR_TASKS)
+    {
+      /* Remember this so it can be passed to VM */
+      multiboot_module_t *mb_mod = &kinfo.module_list[i - NR_TASKS];
+      ip->start_addr = mb_mod->mod_start;
+      ip->len = mb_mod->mod_end - mb_mod->mod_start;
+    }
 
-	/* See if this process is immediately schedulable.
-	 * In that case, set its privileges now and allow it to run.
-	 * Only kernel tasks and the root system process get to run immediately.
-	 * All the other system processes are inhibited from running by the
-	 * RTS_NO_PRIV flag. They can only be scheduled once the root system
-	 * process has set their privileges.
-	 */
-	proc_nr = proc_nr(rp);
-	schedulable_proc = (iskerneln(proc_nr) || isrootsysn(proc_nr) ||
-		proc_nr == VM_PROC_NR);
-	if(schedulable_proc) {
-	    /* Assign privilege structure. Force a static privilege id. */
-            (void) get_priv(rp, static_priv_id(proc_nr));
+    reset_proc_accounting(rp);
 
-            /* Privileges for kernel tasks. */
-	    if(proc_nr == VM_PROC_NR) {
-                priv(rp)->s_flags = VM_F;
-                priv(rp)->s_trap_mask = SRV_T;
-		ipc_to_m = SRV_M;
-		kcalls = SRV_KC;
-                priv(rp)->s_sig_mgr = SELF;
-                rp->p_priority = SRV_Q;
-                rp->p_quantum_size_ms = SRV_QT;
-	    }
-	    else if(iskerneln(proc_nr)) {
-                /* Privilege flags. */
-                priv(rp)->s_flags = (proc_nr == IDLE ? IDL_F : TSK_F);
-                /* Init flags. */
-                priv(rp)->s_init_flags = TSK_I;
-                /* Allowed traps. */
-                priv(rp)->s_trap_mask = (proc_nr == CLOCK 
-                    || proc_nr == SYSTEM  ? CSK_T : TSK_T);
-                ipc_to_m = TSK_M;                  /* allowed targets */
-                kcalls = TSK_KC;                   /* allowed kernel calls */
-            }
-            /* Privileges for the root system process. */
-            else {
-	    	assert(isrootsysn(proc_nr));
-                priv(rp)->s_flags= RSYS_F;        /* privilege flags */
-                priv(rp)->s_init_flags = SRV_I;   /* init flags */
-                priv(rp)->s_trap_mask= SRV_T;     /* allowed traps */
-                ipc_to_m = SRV_M;                 /* allowed targets */
-                kcalls = SRV_KC;                  /* allowed kernel calls */
-                priv(rp)->s_sig_mgr = SRV_SM;     /* signal manager */
-                rp->p_priority = SRV_Q;	          /* priority queue */
-                rp->p_quantum_size_ms = SRV_QT;   /* quantum size */
-            }
+    /* See if this process is immediately schedulable.
+     * In that case, set its privileges now and allow it to run.
+     * Only kernel tasks and the root system process get to run immediately.
+     * All the other system processes are inhibited from running by the
+     * RTS_NO_PRIV flag. They can only be scheduled once the root system
+     * process has set their privileges.
+     */
+    proc_nr = proc_nr(rp);
+    schedulable_proc = (iskerneln(proc_nr) || isrootsysn(proc_nr) ||
+                        proc_nr == VM_PROC_NR);
+    if (schedulable_proc)
+    {
+      /* Assign privilege structure. Force a static privilege id. */
+      (void)get_priv(rp, static_priv_id(proc_nr));
 
-            /* Fill in target mask. */
-            memset(&map, 0, sizeof(map));
+      /* Privileges for kernel tasks. */
+      if (proc_nr == VM_PROC_NR)
+      {
+        priv(rp)->s_flags = VM_F;
+        priv(rp)->s_trap_mask = SRV_T;
+        ipc_to_m = SRV_M;
+        kcalls = SRV_KC;
+        priv(rp)->s_sig_mgr = SELF;
+        rp->p_priority = SRV_Q;
+        rp->p_quantum_size_ms = SRV_QT;
+      }
+      else if (iskerneln(proc_nr))
+      {
+        /* Privilege flags. */
+        priv(rp)->s_flags = (proc_nr == IDLE ? IDL_F : TSK_F);
+        /* Init flags. */
+        priv(rp)->s_init_flags = TSK_I;
+        /* Allowed traps. */
+        priv(rp)->s_trap_mask = (proc_nr == CLOCK || proc_nr == SYSTEM ? CSK_T : TSK_T);
+        ipc_to_m = TSK_M; /* allowed targets */
+        kcalls = TSK_KC;  /* allowed kernel calls */
+      }
+      /* Privileges for the root system process. */
+      else
+      {
+        assert(isrootsysn(proc_nr));
+        priv(rp)->s_flags = RSYS_F;     /* privilege flags */
+        priv(rp)->s_init_flags = SRV_I; /* init flags */
+        priv(rp)->s_trap_mask = SRV_T;  /* allowed traps */
+        ipc_to_m = SRV_M;               /* allowed targets */
+        kcalls = SRV_KC;                /* allowed kernel calls */
+        priv(rp)->s_sig_mgr = SRV_SM;   /* signal manager */
+        rp->p_priority = SRV_Q;         /* priority queue */
+        rp->p_quantum_size_ms = SRV_QT; /* quantum size */
+      }
 
-            if (ipc_to_m == ALL_M) {
-                for(j = 0; j < NR_SYS_PROCS; j++)
-                    set_sys_bit(map, j);
-            }
+      /* Fill in target mask. */
+      memset(&map, 0, sizeof(map));
 
-            fill_sendto_mask(rp, &map);
+      if (ipc_to_m == ALL_M)
+      {
+        for (j = 0; j < NR_SYS_PROCS; j++)
+          set_sys_bit(map, j);
+      }
 
-            /* Fill in kernel call mask. */
-            for(j = 0; j < SYS_CALL_MASK_SIZE; j++) {
-                priv(rp)->s_k_call_mask[j] = (kcalls == NO_C ? 0 : (~0));
-            }
-	}
-	else {
-	    /* Don't let the process run for now. */
-            RTS_SET(rp, RTS_NO_PRIV | RTS_NO_QUANTUM);
-	}
+      fill_sendto_mask(rp, &map);
 
-	/* Arch-specific state initialization. */
-	arch_boot_proc(ip, rp);
+      /* Fill in kernel call mask. */
+      for (j = 0; j < SYS_CALL_MASK_SIZE; j++)
+      {
+        priv(rp)->s_k_call_mask[j] = (kcalls == NO_C ? 0 : (~0));
+      }
+    } // if (schedulable_proc)
+    else
+    {
+      /* Don't let the process run for now. */
+      RTS_SET(rp, RTS_NO_PRIV | RTS_NO_QUANTUM);
+    }
 
-	/* scheduling functions depend on proc_ptr pointing somewhere. */
-	if(!get_cpulocal_var(proc_ptr))
-		get_cpulocal_var(proc_ptr) = rp;
+    /* Arch-specific state initialization. */
+    arch_boot_proc(ip, rp);
 
-	/* Process isn't scheduled until VM has set up a pagetable for it. */
-	if(rp->p_nr != VM_PROC_NR && rp->p_nr >= 0) {
-		rp->p_rts_flags |= RTS_VMINHIBIT;
-		rp->p_rts_flags |= RTS_BOOTINHIBIT;
-	}
+    /* scheduling functions depend on proc_ptr pointing somewhere. */
+    if (!get_cpulocal_var(proc_ptr))
+      get_cpulocal_var(proc_ptr) = rp;
 
-	rp->p_rts_flags |= RTS_PROC_STOP;
-	rp->p_rts_flags &= ~RTS_SLOT_FREE;
-	DEBUGEXTRA(("done\n"));
-  }
+    /* Process isn't scheduled until VM has set up a pagetable for it. */
+    if (rp->p_nr != VM_PROC_NR && rp->p_nr >= 0)
+    {
+      rp->p_rts_flags |= RTS_VMINHIBIT;
+      rp->p_rts_flags |= RTS_BOOTINHIBIT;
+    }
+
+    rp->p_rts_flags |= RTS_PROC_STOP;
+    rp->p_rts_flags &= ~RTS_SLOT_FREE;
+    DEBUGEXTRA(("done\n"));
+  } // for (i = 0; i < NR_BOOT_PROCS; ++i)
 
   /* update boot procs info for VM */
   memcpy(kinfo.boot_procs, image, sizeof(kinfo.boot_procs));
 
-#define IPCNAME(n) { \
-	assert((n) >= 0 && (n) <= IPCNO_HIGHEST); \
-	assert(!ipc_call_names[n]);	\
-	ipc_call_names[n] = #n; \
-}
+#define IPCNAME(n)                            \
+  {                                           \
+    assert((n) >= 0 && (n) <= IPCNO_HIGHEST); \
+    assert(!ipc_call_names[n]);               \
+    ipc_call_names[n] = #n;                   \
+  }
 
   arch_post_init();
 
@@ -301,22 +311,27 @@ void kmain(kinfo_t *local_cbi)
   add_memmap(&kinfo, kinfo.bootstrap_start, kinfo.bootstrap_len);
 
 #ifdef CONFIG_SMP
-  if (config_no_apic) {
-	  DEBUGBASIC(("APIC disabled, disables SMP, using legacy PIC\n"));
-	  smp_single_cpu_fallback();
-  } else if (config_no_smp) {
-	  DEBUGBASIC(("SMP disabled, using legacy PIC\n"));
-	  smp_single_cpu_fallback();
-  } else {
-	  smp_init();
-	  /*
-	   * if smp_init() returns it means that it failed and we try to finish
-	   * single CPU booting
-	   */
-	  bsp_finish_booting();
+  if (config_no_apic)
+  {
+    DEBUGBASIC(("APIC disabled, disables SMP, using legacy PIC\n"));
+    smp_single_cpu_fallback();
+  }
+  else if (config_no_smp)
+  {
+    DEBUGBASIC(("SMP disabled, using legacy PIC\n"));
+    smp_single_cpu_fallback();
+  }
+  else
+  {
+    smp_init();
+    /*
+     * if smp_init() returns it means that it failed and we try to finish
+     * single CPU booting
+     */
+    bsp_finish_booting();
   }
 #else
-  /* 
+  /*
    * if configured for a single CPU, we are already on the kernel stack which we
    * are going to use everytime we execute kernel code. We finish booting and we
    * never return here
@@ -335,13 +350,13 @@ static void announce(void)
   /* Display the MINIX startup banner. */
   printf("\nMINIX %s. "
 #ifdef PAE
-"(PAE) "
+         "(PAE) "
 #endif
 #ifdef _VCS_REVISION
-	"(" _VCS_REVISION ")\n"
+         "(" _VCS_REVISION ")\n"
 #endif
-      "Copyright 2024, Vrije Universiteit, Amsterdam, The Netherlands\n",
-      OS_RELEASE);
+         "Copyright 2024, Vrije Universiteit, Amsterdam, The Netherlands\n",
+         OS_RELEASE);
   printf("MINIX-YunOS is open source software, see https://github.com/howardyang2009/minix\n");
 }
 
@@ -350,16 +365,16 @@ static void announce(void)
  *===========================================================================*/
 void prepare_shutdown(const int how)
 {
-/* This function prepares to shutdown MINIX. */
+  /* This function prepares to shutdown MINIX. */
   static minix_timer_t shutdown_timer;
 
-  /* Continue after 1 second, to give processes a chance to get scheduled to 
-   * do shutdown work.  Set a watchog timer to call shutdown(). The timer 
-   * argument passes the shutdown status. 
+  /* Continue after 1 second, to give processes a chance to get scheduled to
+   * do shutdown work.  Set a watchog timer to call shutdown(). The timer
+   * argument passes the shutdown status.
    */
   printf("MINIX will now be shut down ...\n");
   set_kernel_timer(&shutdown_timer, get_monotonic() + system_hz,
-      minix_shutdown, how);
+                   minix_shutdown, how);
 }
 
 /*===========================================================================*
@@ -367,12 +382,12 @@ void prepare_shutdown(const int how)
  *===========================================================================*/
 void minix_shutdown(int how)
 {
-/* This function is called from prepare_shutdown or stop_sequence to bring 
- * down MINIX.
- */
+  /* This function is called from prepare_shutdown or stop_sequence to bring
+   * down MINIX.
+   */
 
 #ifdef CONFIG_SMP
-  /* 
+  /*
    * FIXME
    *
    * we will need to stop timers on all cpus if SMP is enabled and put them in
@@ -380,20 +395,20 @@ void minix_shutdown(int how)
    * monitor again
    */
   if (ncpus > 1)
-	  smp_shutdown_aps();
+    smp_shutdown_aps();
 #endif
   hw_intr_disable_all();
   stop_local_timer();
 
   /* Show shutdown message */
   direct_cls();
-  if((how & RB_POWERDOWN) == RB_POWERDOWN)
-	direct_print("MINIX has halted and will now power off.\n");
-  else if(how & RB_HALT)
-	direct_print("MINIX has halted. "
-		     "It is safe to turn off your computer.\n");
+  if ((how & RB_POWERDOWN) == RB_POWERDOWN)
+    direct_print("MINIX has halted and will now power off.\n");
+  else if (how & RB_HALT)
+    direct_print("MINIX has halted. "
+                 "It is safe to turn off your computer.\n");
   else
-	direct_print("MINIX will now reset.\n");
+    direct_print("MINIX will now reset.\n");
   arch_shutdown(how);
 }
 
@@ -402,26 +417,27 @@ void minix_shutdown(int how)
  *===========================================================================*/
 void cstart(void)
 {
-/* Perform system initializations prior to calling main(). Most settings are
- * determined with help of the environment strings passed by MINIX' loader.
- */
-  register char *value;				/* value in key=value pair */
+  /* Perform system initializations prior to calling main(). Most settings are
+   * determined with help of the environment strings passed by MINIX' loader.
+   */
+  register char *value; /* value in key=value pair */
 
   /* low-level initialization */
   prot_init();
 
   /* determine verbosity */
   if ((value = env_get(VERBOSEBOOTVARNAME)))
-	  verboseboot = atoi(value);
+    verboseboot = atoi(value);
 
   /* Initialize clock variables. */
   init_clock();
 
   /* Get memory parameters. */
   value = env_get("ac_layout");
-  if(value && atoi(value)) {
-        kinfo.user_sp = (vir_bytes) USR_STACKTOP_COMPACT;
-        kinfo.user_end = (vir_bytes) USR_DATATOP_COMPACT;
+  if (value && atoi(value))
+  {
+    kinfo.user_sp = (vir_bytes)USR_STACKTOP_COMPACT;
+    kinfo.user_end = (vir_bytes)USR_DATATOP_COMPACT;
   }
 
   DEBUGEXTRA(("cstart\n"));
@@ -441,31 +457,31 @@ void cstart(void)
 
 #ifdef USE_APIC
   value = env_get("no_apic");
-  if(value)
-	config_no_apic = atoi(value);
+  if (value)
+    config_no_apic = atoi(value);
   else
-	config_no_apic = 1;
+    config_no_apic = 1;
   value = env_get("apic_timer_x");
-  if(value)
-	config_apic_timer_x = atoi(value);
+  if (value)
+    config_apic_timer_x = atoi(value);
   else
-	config_apic_timer_x = 1;
+    config_apic_timer_x = 1;
 #endif
 
 #ifdef USE_WATCHDOG
   value = env_get("watchdog");
   if (value)
-	  watchdog_enabled = atoi(value);
+    watchdog_enabled = atoi(value);
 #endif
 
 #ifdef CONFIG_SMP
   if (config_no_apic)
-	  config_no_smp = 1;
+    config_no_smp = 1;
   value = env_get("no_smp");
-  if(value)
-	config_no_smp = atoi(value);
+  if (value)
+    config_no_smp = atoi(value);
   else
-	config_no_smp = 0;
+    config_no_smp = 0;
 #endif
   DEBUGEXTRA(("intr_init(0)\n"));
 
@@ -479,24 +495,26 @@ void cstart(void)
  *===========================================================================*/
 
 char *get_value(
-  const char *params,			/* boot monitor parameters */
-  const char *name			/* key to look up */
+    const char *params, /* boot monitor parameters */
+    const char *name    /* key to look up */
 )
 {
-/* Get environment value - kernel version of getenv to avoid setting up the
- * usual environment array.
- */
+  /* Get environment value - kernel version of getenv to avoid setting up the
+   * usual environment array.
+   */
   register const char *namep;
   register char *envp;
 
-  for (envp = (char *) params; *envp != 0;) {
-	for (namep = name; *namep != 0 && *namep == *envp; namep++, envp++)
-		;
-	if (*namep == '\0' && *envp == '=') return(envp + 1);
-	while (*envp++ != 0)
-		;
+  for (envp = (char *)params; *envp != 0;)
+  {
+    for (namep = name; *namep != 0 && *namep == *envp; namep++, envp++)
+      ;
+    if (*namep == '\0' && *envp == '=')
+      return (envp + 1);
+    while (*envp++ != 0)
+      ;
   }
-  return(NULL);
+  return (NULL);
 }
 
 /*===========================================================================*
@@ -504,19 +522,18 @@ char *get_value(
  *===========================================================================*/
 char *env_get(const char *name)
 {
-	return get_value(kinfo.param_buf, name);
+  return get_value(kinfo.param_buf, name);
 }
 
 void cpu_print_freq(unsigned cpu)
 {
-        u64_t freq;
+  u64_t freq;
 
-        freq = cpu_get_freq(cpu);
-        DEBUGBASIC(("CPU %d freq %lu MHz\n", cpu, (unsigned long)(freq / 1000000)));
+  freq = cpu_get_freq(cpu);
+  DEBUGBASIC(("CPU %d freq %lu MHz\n", cpu, (unsigned long)(freq / 1000000)));
 }
 
 int is_fpu(void)
 {
-        return get_cpulocal_var(fpu_presence);
+  return get_cpulocal_var(fpu_presence);
 }
-
